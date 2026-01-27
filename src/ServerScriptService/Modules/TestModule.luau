@@ -3,7 +3,7 @@ local TestModule = {
 }
 
 function TestModule:Init()
-print("Test Module")
+warn("Test Module")
 end
 
 return TestModule
