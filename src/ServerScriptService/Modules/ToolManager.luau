@@ -15,11 +15,15 @@ local function DetectTool(player: Player, tool: Tool)
 end
 
 local function SetupConnection(player: Player, tool: Tool)
-	local character = player.Character 
+	local character = player.Character  or player.characterAdded:Wait()
 	if not character then return end
 	local humanoid  = character:FindFirstChildOfClass("Humanoid")
 	if not humanoid then return end
 	if humanoid.Health <= 0 then return end
+	if not tool then 
+		warn("Tool Not Equipped For ", player) 
+		return
+	end
 	local confirmedTool = ToolController.DetectTool(player, tool)
 	if confirmedTool then
 		ToolController.HandleToolEquipped(player, confirmedTool)
@@ -39,9 +43,9 @@ local function HandleToolEquipped(player: Player, tool: Tool)
 end
 
 
-function ToolController:Init(player: Player, tool: Tool)
-    warn("Tool Controller")
-	SetupConnection(player, tool)
+function ToolController:Init(player: Player)
+    warn("Tool Manager")
+	SetupConnection(player)
 end
 
 return ToolController
