@@ -1,55 +1,67 @@
-local ToolController = {
+local ServerScriptService = game:GetService("ServerScriptService")
+local ToolController = {}
 
-}
-ToolController.CurrentEquippedTools = {
-	--["Player"] = ToolName,
-}
+ToolController.CurrentEquippedTools = {} -- [player] = Tool
+ToolController.ToolConnections = {} -- [tool] = RBXScriptConnection
 
+local function isValidTool(player: Player, tool: Instance): Tool?
+	if not tool or not tool:IsA("Tool") then return nil end
 
-local function DetectTool(player: Player, tool: Tool)
-    -- Tool detection logic goes here
-	if not tool:IsA("Tool") then return end
-	-- Example: Print tool name
-	print("Detected tool: " .. tool.Name)
+	local character = player.Character
+	if not character then return nil end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or humanoid.Health <= 0 then return nil end
+
 	return tool
 end
 
-local function SetupConnection(player: Player, tool: Tool)
-	local character = player.Character  or player.characterAdded:Wait()
-	if not character then return end
-	local humanoid  = character:FindFirstChildOfClass("Humanoid")
-	if not humanoid then return end
-	if humanoid.Health <= 0 then return end
-	if not tool then 
-		warn("Tool Not Equipped For ", player) 
-		return
-	end
-	local confirmedTool = ToolController.DetectTool(player, tool)
-	if confirmedTool then
-		ToolController.HandleToolEquipped(player, confirmedTool)
-	end
+function ToolController:HandleToolEquipped(player: Player, tool: Tool)
+if self.CurrentEquippedTools[player] == tool then return end
+
+
+-- cleanup old
+local oldTool = self.CurrentEquippedTools[player]
+if oldTool and self.ToolConnections[oldTool] then
+self.ToolConnections[oldTool]:Disconnect()
+self.ToolConnections[oldTool] = nil
 end
 
-local function HandleToolEquipped(player: Player, tool: Tool)
-    -- Tool equipped handling logic goes here
-	if ToolController.CurrentEquippedTools[player.Name] == tool.Name then
-		print(player.Name .. " already has a tool equipped.")
-		return
-	else	
-		--Create Player entry
-		ToolController.CurrentEquippedTools[player.Name] = tool.Name
-		print(player.Name .. " equipped " .. tool.Name)
-	end
+
+self.CurrentEquippedTools[player] = tool
+
+
+self.ToolConnections[tool] = tool.Activated:Connect(function()
+
+	local toolModule = require(ServerScriptService.Modules.Tools[tool.Name])
+	print("Found tool module for " .. tool.Name)
+	toolModule.OnActivated(player, tool)
+	print(player.Name .. " used " .. tool.Name)
+end)
 end
 
+function ToolController:HandleToolUnequipped(player: Player, tool: Tool)
+	if self.CurrentEquippedTools[player] ~= tool then return end
+	self.CurrentEquippedTools[player] = nil
+	print(player.Name .. " unequipped " .. tool.Name)
+end
 
 function ToolController:Init(player: Player)
-    warn("Tool Manager")
-	SetupConnection(player)
+	player.CharacterAdded:Connect(function(character)
+		character.ChildAdded:Connect(function(child)
+			local tool = isValidTool(player, child)
+			if tool then
+				self:HandleToolEquipped(player, tool)
+			end
+		end)
+
+		character.ChildRemoved:Connect(function(child)
+			local tool = isValidTool(player, child)
+			if tool then
+				self:HandleToolUnequipped(player, tool)
+			end
+		end)
+	end)
 end
 
 return ToolController
-
-
-
-
