@@ -38,16 +38,13 @@ self.ToolConnections[tool] = tool.Activated:Connect(function()
 		warn("No valid tool module or .OnActivated function found for " .. tool.Name)
 		return
 	end
-	print("Found tool module for " .. tool.Name)
 	toolModule.OnActivated(player, tool)
-	print(player.Name .. " used " .. tool.Name)
 end)
 end
 
 function ToolController:HandleToolUnequipped(player: Player, tool: Tool)
 	if self.CurrentEquippedTools[player] ~= tool then return end
 	self.CurrentEquippedTools[player] = nil
-	print(player.Name .. " unequipped " .. tool.Name)
 end
 
 function ToolController:Init(player: Player)

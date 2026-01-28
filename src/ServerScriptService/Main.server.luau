@@ -23,6 +23,7 @@ end
 --Main Game Loop
 Initialize(controllers, "Controller")
 
+--Server Module Initializations
 game.Players.PlayerAdded:Connect(function(player: Player) 
 	Initialize(modules, "Module", player)
 end)
