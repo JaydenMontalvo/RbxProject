@@ -32,8 +32,12 @@ self.CurrentEquippedTools[player] = tool
 
 
 self.ToolConnections[tool] = tool.Activated:Connect(function()
-
-	local toolModule = require(ServerScriptService.Modules.Tools[tool.Name])
+	local moduleFolder = ServerScriptService.Modules.Tools
+	local toolModule = require(moduleFolder[tool.Name])
+	if not toolModule or typeof(toolModule.OnActivated) ~= "function" then
+		warn("No valid tool module or .OnActivated function found for " .. tool.Name)
+		return
+	end
 	print("Found tool module for " .. tool.Name)
 	toolModule.OnActivated(player, tool)
 	print(player.Name .. " used " .. tool.Name)
