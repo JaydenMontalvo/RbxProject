@@ -1,3 +1,4 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ToolController = {}
 
@@ -32,7 +33,7 @@ self.CurrentEquippedTools[player] = tool
 
 
 self.ToolConnections[tool] = tool.Activated:Connect(function()
-	local moduleFolder = ServerScriptService.Modules.Tools
+	local moduleFolder = ReplicatedStorage.Modules.Tools
 	local toolModule = require(moduleFolder[tool.Name])
 	if not toolModule or typeof(toolModule.OnActivated) ~= "function" then
 		warn("No valid tool module or .OnActivated function found for " .. tool.Name)
